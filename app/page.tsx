@@ -78,7 +78,7 @@ const translations = {
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+  const [sortDifficulty, setSortDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy')
   const [viewMode, setViewMode] = useState<"cards" | "table">("table")
   const [currentPage, setCurrentPage] = useState(1)
   const [language, setLanguage] = useState<"en" | "bn">("en")
@@ -88,8 +88,8 @@ export default function Home() {
 
   const t = translations[language]
 
-  const columnOrder = ["completed", "word", "bangla", "synonym", "example", "definition"]
-  
+  const columnOrder = ["completed", "word", "bangla", "synonym", "example", "definition", ]
+
   const allColumns = [
     { id: "completed", label: "", required: true },
     { id: "word", label: t.word, required: true },
@@ -110,14 +110,14 @@ export default function Home() {
     } else {
       const targetIndex = columnOrder.indexOf(columnId)
       const newColumns = [...visibleColumns]
-      
+
       let insertIndex = 0
       for (let i = 0; i < targetIndex; i++) {
         if (visibleColumns.includes(columnOrder[i])) {
           insertIndex = visibleColumns.indexOf(columnOrder[i]) + 1
         }
       }
-      
+
       newColumns.splice(insertIndex, 0, columnId)
       setVisibleColumns(newColumns)
     }
@@ -132,19 +132,18 @@ export default function Home() {
 
   // Filter and sort vocabulary data
   const filteredAndSortedData = useMemo(() => {
-    // First filter by search term
     let filtered = vocabularyData.filter(
       (word) =>
         word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
         word.definition.toLowerCase().includes(searchTerm.toLowerCase()) ||
         word.bangla.includes(searchTerm.toLowerCase()),
     )
-
-    // Then sort (always sort by word)
+    // Sort by difficulty_level
+    const difficultyOrder = { easy: 0, medium: 1, hard: 2 }
     return [...filtered].sort((a, b) => {
-      return sortOrder === "asc" ? a.word.localeCompare(b.word) : b.word.localeCompare(a.word)
-    })
-  }, [vocabularyData, searchTerm, sortOrder])
+      return difficultyOrder[a.difficulty_level] - difficultyOrder[b.difficulty_level]
+    }).filter(word => word.difficulty_level === sortDifficulty)
+  }, [vocabularyData, searchTerm, sortDifficulty])
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedData.length / PAGE_SIZE)
@@ -156,7 +155,7 @@ export default function Home() {
   // Reset to first page when filters change
   useMemo(() => {
     setCurrentPage(1)
-  }, [searchTerm, sortOrder])
+  }, [searchTerm, sortDifficulty])
 
   // Calculate if all items on current page are checked
   const areAllCheckedOnPage = useMemo(() => {
@@ -178,7 +177,7 @@ export default function Home() {
   return (
     <main className="container mx-auto px-4 py-8">
       <QuizModal />
-      
+
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold dark:text-white">{t.title}</h1>
         <div className="flex items-center gap-2">
@@ -213,16 +212,17 @@ export default function Home() {
         </div>
 
         <div>
-          <Label htmlFor="sort-order" className="mb-2 block dark:text-white">
-            {t.sortOrder}
-          </Label>
-          <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
-            <SelectTrigger id="sort-order" className="w-[120px] dark:bg-gray-900 dark:text-white dark:border-gray-700">
-              <SelectValue placeholder={t.sortOrder} />
+          {/* <Label htmlFor="sort-difficulty" className="mb-2 block dark:text-white">
+            Sort by
+          </Label> */}
+          <Select value={sortDifficulty} onValueChange={(value) => setSortDifficulty(value as 'easy' | 'medium' | 'hard')}>
+            <SelectTrigger id="sort-difficulty" className="w-[120px] dark:bg-gray-900 dark:text-white dark:border-gray-700">
+              <SelectValue placeholder="Difficulty" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="asc">{t.ascending}</SelectItem>
-              <SelectItem value="desc">{t.descending}</SelectItem>
+              <SelectItem value="easy">Easy</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="hard">Hard</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -295,6 +295,10 @@ export default function Home() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">{word.synonym}</p>
                   </div>
                 )}
+                <div className="mt-2">
+                  <span className="text-xs font-semibold">Difficulty: </span>
+                  <span className="text-xs">{word.difficulty_level}</span>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -364,6 +368,7 @@ export default function Home() {
                         {columnId === "synonym" && (word.synonym || "-")}
                         {columnId === "definition" && word.definition}
                         {columnId === "example" && <span className="italic">"{word.example}"</span>}
+                        {columnId === "difficulty_level" && word.difficulty_level}
                       </TableCell>
                     ))}
                   </TableRow>
