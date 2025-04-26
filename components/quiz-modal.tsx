@@ -98,7 +98,7 @@ useEffect(() => {
   if (showCelebration) {
     const timer = setTimeout(() => {
       handleClose();
-    }, 2000);
+    }, 4000);
     return () => clearTimeout(timer);
   }
 }, [showCelebration]);

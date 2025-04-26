@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
-import { Globe, Search, Check, X } from "lucide-react"
+import {  Search,  CheckCheckIcon,  PencilRuler } from "lucide-react"
 import { vocabularyData, type VocabularyWord } from "@/data/vocabulary-data"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -84,11 +84,20 @@ export default function Home() {
   const [language, setLanguage] = useState<"en" | "bn">("en")
   const [visibleColumns, setVisibleColumns] = useState<string[]>(["completed", "word", "bangla", "synonym", "example"])
   const { completedWords, toggleWord, checkAll, uncheckAll } = useCompletedWordsStore()
-  const { setIsOpen, startQuiz } = useQuizStore()
+  const { startQuiz } = useQuizStore()
 
   const t = translations[language]
 
-  const columnOrder = ["completed", "word", "bangla", "synonym", "example", "definition", ]
+  const columnOrder = [
+    "completed",
+    "word",
+    "bangla",
+    "synonym",
+    "example",
+    "definition",
+    "difficulty_level",
+    "action" 
+  ];
 
   const allColumns = [
     { id: "completed", label: "", required: true },
@@ -97,7 +106,9 @@ export default function Home() {
     { id: "synonym", label: t.synonym },
     { id: "definition", label: t.definition },
     { id: "example", label: t.example },
-  ]
+    { id: "difficulty_level", label: "Difficulty" },
+    { id: "action", label: "Action", required: true }, 
+  ];
 
   const hiddenColumns = allColumns.filter(col => !visibleColumns.includes(col.id))
 
@@ -239,7 +250,10 @@ export default function Home() {
 
         <div className="flex items-center gap-4">
           {/* Hidden Columns */}
-          {hiddenColumns.map(col => (
+          {hiddenColumns
+          .filter(col => col.id !== "action") // Exclude action column
+          .filter(col => col.id !== "difficulty_level" ) // Exclude required columns
+          .map(col => (
             <Button 
               key={col.id} 
               variant="outline" 
@@ -312,8 +326,8 @@ export default function Home() {
             <Table className="w-full">
               <TableHeader className="bg-gray-100 dark:bg-gray-900">
                 <TableRow>
-                  {visibleColumns.map(columnId => {
-                    const column = allColumns.find(col => col.id === columnId)!
+                  {visibleColumns.concat("action").map(columnId => { // Always include action
+                    const column = allColumns.find(col => col.id === columnId)!;
                     return (
                       <TableHead 
                         key={columnId} 
@@ -344,7 +358,7 @@ export default function Home() {
                           )}
                         </div>
                       </TableHead>
-                    )
+                    );
                   })}
                 </TableRow>
               </TableHeader>
@@ -371,6 +385,33 @@ export default function Home() {
                         {columnId === "difficulty_level" && word.difficulty_level}
                       </TableCell>
                     ))}
+                    <TableCell key="action" className="flex items-center gap-2">
+                      
+                      <div className="group relative inline-block">
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          onClick={() => toggleWord(word.id)}
+                          disabled={completedWords.includes(word.id)}
+                          aria-label="Mark Complete"
+                        >
+                          <CheckCheckIcon className="h-3 w-3" />
+                        </Button>
+                        <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -mt-8 ml-10 z-10 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                          Mark as complete
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="hover:cursor-pointer mr-1 disabled:cursor-not-allowed"
+                        onClick={() => handleWordCheck(word.id, word)}
+                        disabled={completedWords.includes(word.id)}
+                        aria-label="Take Test"
+                      >
+                        <PencilRuler className="h-3 w-3" />
+                        <span >Take Test</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
