@@ -186,23 +186,8 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-4">
       <QuizModal />
-
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold dark:text-white">{t.title}</h1>
-        <div className="flex items-center gap-2">
-          <Select value={language} onValueChange={(value) => setLanguage(value as "en" | "bn")}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="bn">বাংলা</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
       {/* All Filters in One Row */}
       <div className="flex flex-wrap gap-4 items-end mb-8">

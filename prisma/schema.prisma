@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String?   // Optional for social auth
+  name              String?
+  role              String    @default("user") // Role can be "user" or "admin"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  emailVerified     DateTime?
+  verificationToken String?
+  googleId          String?   @unique
+  image             String?   // Profile image URL
+  vocabularyProgress Json? // Store vocabulary progress as JSON
+  quizResults       Json?    // Store quiz results as JSON
+  settings          Json?    // Store user settings as JSON
+}
